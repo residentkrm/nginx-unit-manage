@@ -1,15 +1,22 @@
-import { inject } from 'vue';
+import { ref } from 'vue';
 
-export function useAlert() {
-    const showAlert = inject('showAlert');
-    
-    if (!showAlert) {
-        console.warn('useAlert: showAlert not provided. Make sure Layout component is mounted.');
-        return {
-            showAlert: () => {}
-        };
-    }
-    
-    return { showAlert };
-}
+const alertMessage = ref(null);
+const alertType = ref('success');
 
+export const useAlert = () => {
+    const showAlert = (message, type = 'success') => {
+        alertMessage.value = message;
+        alertType.value = type;
+    };
+
+    const hideAlert = () => {
+        alertMessage.value = null;
+    };
+
+    return {
+        alertMessage,
+        alertType,
+        showAlert,
+        hideAlert,
+    };
+};

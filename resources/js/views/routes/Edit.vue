@@ -5,14 +5,11 @@
                 <h1 class="text-3xl font-semibold text-gray-900 dark:text-white">Edit Route: {{ name }}</h1>
             </div>
         </div>
-
         <div v-if="loading" class="mt-8 text-center py-12">
             <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
-
         <form v-else @submit.prevent="submit" class="mt-8">
             <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 transition-colors">
-                <!-- Tabs -->
                 <div class="border-b border-gray-200 dark:border-gray-700 mb-6">
                     <nav class="-mb-px flex space-x-8">
                         <button
@@ -33,28 +30,22 @@
                         </button>
                     </nav>
                 </div>
-
-                <!-- Form Tab -->
                 <div v-show="activeTab === 'form'" class="space-y-6">
                     <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
                         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Match Conditions</h3>
-                        
                         <div>
                             <label for="matchHost" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Host (optional)</label>
                             <input v-model="form.matchHost" type="text" id="matchHost" placeholder="example.com" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 sm:text-sm">
                             <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Match requests by Host header</p>
                         </div>
-
                         <div class="mt-4">
                             <label for="matchUri" class="block text-sm font-medium text-gray-700 dark:text-gray-300">URI Pattern (optional)</label>
                             <input v-model="form.matchUri" type="text" id="matchUri" placeholder="/api/*" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 sm:text-sm">
                             <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Match requests by URI pattern (supports wildcards)</p>
                         </div>
                     </div>
-
                     <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
                         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Action</h3>
-                        
                         <div>
                             <label for="actionType" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Action Type</label>
                             <select v-model="form.actionType" id="actionType" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 sm:text-sm">
@@ -63,13 +54,11 @@
                                 <option value="share">Share</option>
                             </select>
                         </div>
-
                         <div v-if="form.actionType === 'pass'" class="mt-4">
                             <label for="actionPass" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Pass To</label>
                             <input v-model="form.actionPass" type="text" id="actionPass" required placeholder="applications/myapp" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 sm:text-sm">
                             <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Application or route to pass requests to</p>
                         </div>
-
                         <div v-if="form.actionType === 'return'" class="mt-4">
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
@@ -82,34 +71,28 @@
                                 </div>
                             </div>
                         </div>
-
                         <div v-if="form.actionType === 'share'" class="mt-4">
                             <label for="actionShare" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Share Path</label>
                             <input v-model="form.actionShare" type="text" id="actionShare" required placeholder="/var/www/html" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 sm:text-sm">
                             <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Path to static files directory</p>
                         </div>
                     </div>
-
                     <div>
                         <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
                         <textarea v-model="form.description" id="description" rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 sm:text-sm"></textarea>
                     </div>
                 </div>
-
-                <!-- JSON Tab -->
                 <div v-show="activeTab === 'json'" class="space-y-6">
                     <div>
                         <label for="configJson" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Configuration (JSON)</label>
                         <textarea v-model="jsonConfig" id="configJson" rows="15" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 sm:text-sm font-mono"></textarea>
                         <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Enter configuration as JSON</p>
                     </div>
-
                     <div>
                         <label for="descriptionJson" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
                         <textarea v-model="form.description" id="descriptionJson" rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 sm:text-sm"></textarea>
                     </div>
                 </div>
-
                 <div class="mt-6 flex items-center justify-end gap-x-6">
                     <router-link to="/unit/routes" class="text-sm font-semibold leading-6 text-gray-900 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200">Cancel</router-link>
                     <button type="submit" :disabled="saving" class="rounded-md bg-blue-600 dark:bg-blue-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 dark:hover:bg-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:focus-visible:outline-blue-500 transition-colors disabled:opacity-50">
@@ -120,17 +103,14 @@
         </form>
     </div>
 </template>
-
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useApi } from '../../composables/useApi';
 import { useAlert } from '../../composables/useAlert';
-
 const props = defineProps({
     name: String
 });
-
 const { get, put } = useApi();
 const { showAlert } = useAlert();
 const route = useRoute();
@@ -138,9 +118,7 @@ const router = useRouter();
 const loading = ref(true);
 const saving = ref(false);
 const activeTab = ref('form');
-
 const name = ref(props.name || route.params.name);
-
 const form = ref({
     matchHost: '',
     matchUri: '',
@@ -151,12 +129,9 @@ const form = ref({
     actionShare: '',
     description: ''
 });
-
 const jsonConfig = ref('');
-
 const syncToJson = () => {
     const config = {};
-
     // Match conditions
     const match = {};
     if (form.value.matchHost) {
@@ -168,7 +143,6 @@ const syncToJson = () => {
     if (Object.keys(match).length > 0) {
         config.match = match;
     }
-
     // Action
     const action = {};
     if (form.value.actionType === 'pass') {
@@ -186,10 +160,8 @@ const syncToJson = () => {
         action.share = form.value.actionShare;
     }
     config.action = action;
-
     jsonConfig.value = JSON.stringify(config, null, 2);
 };
-
 const loadRoute = async () => {
     loading.value = true;
     const result = await get(`/unit/routes/${name.value}`);
@@ -198,14 +170,12 @@ const loadRoute = async () => {
         const config = routeData.config || {};
         const match = config.match || {};
         const action = config.action || {};
-
         // Determine action type
         let actionType = 'pass';
         let returnCode = 200;
         let returnBody = '';
         let actionPass = '';
         let actionShare = '';
-
         if (action.return !== undefined) {
             actionType = 'return';
             if (typeof action.return === 'object') {
@@ -221,7 +191,6 @@ const loadRoute = async () => {
             actionType = 'pass';
             actionPass = action.pass;
         }
-
         form.value = {
             matchHost: match.host || '',
             matchUri: match.uri || '',
@@ -239,12 +208,10 @@ const loadRoute = async () => {
     }
     loading.value = false;
 };
-
 const submit = async () => {
     saving.value = true;
     try {
         let config;
-        
         if (activeTab.value === 'json') {
             try {
                 config = JSON.parse(jsonConfig.value);
@@ -265,7 +232,6 @@ const submit = async () => {
             if (Object.keys(match).length > 0) {
                 config.match = match;
             }
-
             // Action
             const action = {};
             if (form.value.actionType === 'pass') {
@@ -294,12 +260,10 @@ const submit = async () => {
             }
             config.action = action;
         }
-
         const result = await put(`/unit/routes/${name.value}`, {
             config: JSON.stringify(config),
             description: form.value.description
         });
-        
         if (result.success) {
             showAlert('Route updated successfully', 'success');
             router.push('/unit/routes');
@@ -312,6 +276,5 @@ const submit = async () => {
         saving.value = false;
     }
 };
-
 onMounted(loadRoute);
 </script>

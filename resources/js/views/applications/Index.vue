@@ -11,11 +11,9 @@
                     </router-link>
                 </div>
             </div>
-
             <div v-if="loading" class="mt-8 text-center py-12">
                 <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
-
             <div v-else class="mt-8 flow-root">
                 <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                     <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
@@ -74,19 +72,16 @@
             </div>
         </div>
 </template>
-
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useApi } from '../../composables/useApi';
 import { useAlert } from '../../composables/useAlert';
-
 const { get, post, delete: del } = useApi();
 const { showAlert } = useAlert();
 const router = useRouter();
 const loading = ref(true);
 const applications = ref([]);
-
 const loadApplications = async () => {
     loading.value = true;
     const result = await get('/unit/applications');
@@ -95,7 +90,6 @@ const loadApplications = async () => {
     }
     loading.value = false;
 };
-
 const toggleApp = async (name) => {
     const result = await post(`/unit/applications/${name}/toggle`, {});
     if (result.success) {
@@ -105,10 +99,8 @@ const toggleApp = async (name) => {
         showAlert(result.error || 'Failed to toggle application', 'error');
     }
 };
-
 const deleteApp = async (name) => {
     if (!confirm('Are you sure you want to delete this application?')) return;
-    
     const result = await del(`/unit/applications/${name}`);
     if (result.success) {
         showAlert('Application deleted successfully', 'success');
@@ -117,7 +109,5 @@ const deleteApp = async (name) => {
         showAlert(result.error || 'Failed to delete application', 'error');
     }
 };
-
 onMounted(loadApplications);
 </script>
-

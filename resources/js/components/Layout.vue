@@ -1,54 +1,65 @@
 <template>
     <div>
-        <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-200">
+        <nav
+            class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-200"
+        >
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
                     <div class="flex">
                         <div class="flex-shrink-0 flex items-center">
-                            <router-link to="/unit/dashboard" class="text-xl font-bold text-gray-900 dark:text-white">
+                            <router-link
+                                to="/unit/dashboard"
+                                class="text-xl font-bold text-gray-900 dark:text-white"
+                            >
                                 Nginx Unit Manager
                             </router-link>
                         </div>
                         <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                            <router-link 
-                                to="/unit/dashboard" 
+                            <router-link
+                                to="/unit/dashboard"
                                 class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-                                :class="$route.name === 'dashboard' ? 'border-blue-500 text-gray-900 dark:text-white' : 'border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200'"
+                                :class="
+                                    $route.name === 'dashboard'
+                                        ? 'border-blue-500 text-gray-900 dark:text-white'
+                                        : 'border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200'
+                                "
                             >
                                 Dashboard
                             </router-link>
-                            <router-link 
-                                to="/unit/applications" 
+                            <router-link
+                                to="/unit/applications"
                                 class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-                                :class="$route.name?.startsWith('applications') ? 'border-blue-500 text-gray-900 dark:text-white' : 'border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200'"
+                                :class="
+                                    $route.name?.startsWith('applications')
+                                        ? 'border-blue-500 text-gray-900 dark:text-white'
+                                        : 'border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200'
+                                "
                             >
                                 Applications
                             </router-link>
-                            <router-link 
-                                to="/unit/listeners" 
+                            <router-link
+                                to="/unit/listeners"
                                 class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-                                :class="$route.name?.startsWith('listeners') ? 'border-blue-500 text-gray-900 dark:text-white' : 'border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200'"
+                                :class="
+                                    $route.name?.startsWith('listeners')
+                                        ? 'border-blue-500 text-gray-900 dark:text-white'
+                                        : 'border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200'
+                                "
                             >
                                 Listeners
                             </router-link>
-                            <router-link 
-                                to="/unit/routes" 
+                            <router-link
+                                to="/unit/routes"
                                 class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-                                :class="$route.name?.startsWith('routes') ? 'border-blue-500 text-gray-900 dark:text-white' : 'border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200'"
+                                :class="
+                                    $route.name?.startsWith('routes')
+                                        ? 'border-blue-500 text-gray-900 dark:text-white'
+                                        : 'border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200'
+                                "
                             >
                                 Routes
                             </router-link>
                         </div>
-                    </div>
-                    <div class="flex items-center">
-                        <button 
-                            @click="toggleTheme" 
-                            class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" 
-                            aria-label="Toggle theme"
-                        >
-                            <SunIcon v-if="isDark" />
-                            <MoonIcon v-else />
-                        </button>
                     </div>
                 </div>
             </div>
@@ -64,10 +75,5 @@
 </template>
 
 <script setup>
-import { useTheme } from '../composables/useTheme';
-import SunIcon from './icons/SunIcon.vue';
-import MoonIcon from './icons/MoonIcon.vue';
-import AlertContainer from './AlertContainer.vue';
-
-const { isDark, toggleTheme } = useTheme();
+import AlertContainer from "./AlertContainer.vue";
 </script>

@@ -1,22 +1,22 @@
-import axios from 'axios';
+import axios from "axios";
 
 const api = axios.create({
-    baseURL: '/api',
+    baseURL: "/api",
     headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    }
+        "Content-Type": "application/json",
+        Accept: "application/json",
+    },
 });
 
 const extractErrorMessage = (error) => {
     if (!error.response) {
-        return error.message || 'Network error';
+        return error.message || "Network error";
     }
 
     const { data, status } = error.response;
 
     // Laravel validation errors
-    if (data?.errors && typeof data.errors === 'object') {
+    if (data?.errors && typeof data.errors === "object") {
         const firstError = Object.values(data.errors)[0];
         if (Array.isArray(firstError) && firstError.length > 0) {
             return firstError[0];
@@ -35,16 +35,16 @@ const extractErrorMessage = (error) => {
 
     // Generic HTTP error
     if (status === 400) {
-        return 'Bad Request';
+        return "Bad Request";
     }
     if (status === 404) {
-        return 'Not Found';
+        return "Not Found";
     }
     if (status === 422) {
-        return 'Validation Error';
+        return "Validation Error";
     }
     if (status === 500) {
-        return 'Server Error';
+        return "Server Error";
     }
 
     return `Request failed with status code ${status}`;
@@ -56,10 +56,10 @@ export const useApi = () => {
             const response = await api.get(url);
             return { success: true, data: response.data };
         } catch (error) {
-            return { 
-                success: false, 
+            return {
+                success: false,
                 error: extractErrorMessage(error),
-                status: error.response?.status
+                status: error.response?.status,
             };
         }
     };
@@ -69,10 +69,10 @@ export const useApi = () => {
             const response = await api.post(url, data);
             return { success: true, data: response.data };
         } catch (error) {
-            return { 
-                success: false, 
+            return {
+                success: false,
                 error: extractErrorMessage(error),
-                status: error.response?.status
+                status: error.response?.status,
             };
         }
     };
@@ -82,10 +82,10 @@ export const useApi = () => {
             const response = await api.put(url, data);
             return { success: true, data: response.data };
         } catch (error) {
-            return { 
-                success: false, 
+            return {
+                success: false,
                 error: extractErrorMessage(error),
-                status: error.response?.status
+                status: error.response?.status,
             };
         }
     };
@@ -95,14 +95,13 @@ export const useApi = () => {
             const response = await api.delete(url);
             return { success: true, data: response.data };
         } catch (error) {
-            return { 
-                success: false, 
+            return {
+                success: false,
                 error: extractErrorMessage(error),
-                status: error.response?.status
+                status: error.response?.status,
             };
         }
     };
 
     return { get, post, put, delete: del };
 };
-

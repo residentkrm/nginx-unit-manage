@@ -1,10 +1,10 @@
-import { ref } from 'vue';
+import { ref } from "vue";
 
 const alertMessage = ref(null);
-const alertType = ref('success');
+const alertType = ref("success");
 
 export const useAlert = () => {
-    const showAlert = (message, type = 'success') => {
+    const showAlert = (message, type = "success") => {
         alertMessage.value = message;
         alertType.value = type;
     };

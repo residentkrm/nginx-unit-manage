@@ -11,4 +11,3 @@ class ListenerActiveException extends Exception
         parent::__construct('Please deactivate the listener before deleting it.');
     }
 }
-

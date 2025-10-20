@@ -12,7 +12,6 @@ use App\Exceptions\Unit\UnitApiException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Unit\StoreListenerRequest;
 use App\Http\Requests\Unit\UpdateListenerRequest;
-use App\Repositories\UnitApplicationRepository;
 use App\Repositories\UnitListenerRepository;
 use App\Services\UnitService;
 use Illuminate\Http\Request;
@@ -30,7 +29,7 @@ class ListenerController extends Controller
     public function index()
     {
         $listeners = $this->repository->all();
-        
+
         // Try to get active listeners from Unit API (optional, won't fail if server is down)
         $activeListeners = [];
         try {
@@ -40,15 +39,16 @@ class ListenerController extends Controller
                 $activeListeners = $apiResult['data'];
             }
         } catch (\Exception $e) {
-            Log::error('Failed to get listeners from Unit API: ' . $e->getMessage());
+            Log::error('Failed to get listeners from Unit API: '.$e->getMessage());
         }
-        
+
         return response()->json([
             'data' => $listeners->map(function ($listener) use ($activeListeners) {
                 $listenerData = $listener->toArray();
                 $listenerData['is_active_in_unit'] = isset($activeListeners[$listener->address]);
+
                 return $listenerData;
-            })
+            }),
         ]);
     }
 
@@ -61,7 +61,7 @@ class ListenerController extends Controller
             return response()->json(['error' => 'Invalid JSON format'], 400);
         }
 
-        if (!empty($validated['pass'])) {
+        if (! empty($validated['pass'])) {
             $config['pass'] = $validated['pass'];
         }
 
@@ -83,6 +83,7 @@ class ListenerController extends Controller
     {
         $address = urldecode($address);
         $listener = $this->repository->findOrFail($address);
+
         return response()->json(['success' => true, 'data' => $listener]);
     }
 
@@ -97,7 +98,7 @@ class ListenerController extends Controller
             return response()->json(['error' => 'Invalid JSON format'], 400);
         }
 
-        if (!empty($validated['pass'])) {
+        if (! empty($validated['pass'])) {
             $config['pass'] = $validated['pass'];
         }
 
@@ -117,6 +118,7 @@ class ListenerController extends Controller
 
         try {
             $action->execute($listener);
+
             return response()->json(['success' => true], 204);
         } catch (ListenerActiveException $e) {
             return response()->json(['error' => $e->getMessage()], 400);
@@ -133,9 +135,10 @@ class ListenerController extends Controller
 
         try {
             $listener = $action->execute($listener);
-            $message = $listener->active 
-                ? 'Listener activated and deployed successfully' 
+            $message = $listener->active
+                ? 'Listener activated and deployed successfully'
                 : 'Listener deactivated successfully';
+
             return response()->json(['success' => true, 'data' => $listener, 'message' => $message]);
         } catch (UnitApiException $e) {
             return response()->json(['error' => $e->getMessage()], 400);

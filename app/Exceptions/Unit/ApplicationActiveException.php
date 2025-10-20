@@ -11,4 +11,3 @@ class ApplicationActiveException extends Exception
         parent::__construct('Please deactivate the application before deleting it.');
     }
 }
-

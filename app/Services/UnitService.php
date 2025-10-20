@@ -2,14 +2,16 @@
 
 namespace App\Services;
 
+use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Exception;
 
 class UnitService
 {
     protected string $apiUrl;
+
     protected int $timeout;
+
     protected bool $verifySsl;
 
     public function __construct()
@@ -25,17 +27,17 @@ class UnitService
     protected function extractErrorMessage(string $body): string
     {
         $errorData = json_decode($body, true);
-        
+
         if (json_last_error() === JSON_ERROR_NONE && is_array($errorData)) {
             if (isset($errorData['error']) && isset($errorData['detail'])) {
-                return $errorData['error'] . ': ' . $errorData['detail'];
+                return $errorData['error'].': '.$errorData['detail'];
             } elseif (isset($errorData['detail'])) {
                 return $errorData['detail'];
             } elseif (isset($errorData['error'])) {
                 return $errorData['error'];
             }
         }
-        
+
         return $body;
     }
 
@@ -51,10 +53,10 @@ class UnitService
             }
 
             // HTTP request
-            $url = rtrim($this->apiUrl, '/') . '/' . ltrim($endpoint, '/');
-            
+            $url = rtrim($this->apiUrl, '/').'/'.ltrim($endpoint, '/');
+
             $response = Http::timeout($this->timeout)
-                ->withoutVerifying(!$this->verifySsl)
+                ->withoutVerifying(! $this->verifySsl)
                 ->{strtolower($method)}($url, $data);
 
             if ($response->successful()) {
@@ -89,22 +91,22 @@ class UnitService
     protected function requestUnixSocket(string $method, string $endpoint, array $data = []): array
     {
         $socketPath = str_replace('unix:', '', $this->apiUrl);
-        $url = 'http://localhost' . '/' . ltrim($endpoint, '/');
-        
+        $url = 'http://localhost'.'/'.ltrim($endpoint, '/');
+
         $curlCommand = sprintf(
             'curl -s -w "\n%%{http_code}" --unix-socket %s -X %s -H "Content-Type: application/json"',
             escapeshellarg($socketPath),
             escapeshellarg(strtoupper($method))
         );
 
-        if (!empty($data) && in_array(strtoupper($method), ['PUT', 'POST', 'PATCH'])) {
+        if (! empty($data) && in_array(strtoupper($method), ['PUT', 'POST', 'PATCH'])) {
             $jsonData = json_encode($data);
-            $curlCommand .= ' -d ' . escapeshellarg($jsonData);
+            $curlCommand .= ' -d '.escapeshellarg($jsonData);
         }
 
-        $curlCommand .= ' ' . escapeshellarg($url);
+        $curlCommand .= ' '.escapeshellarg($url);
 
-        $output = shell_exec($curlCommand . ' 2>&1');
+        $output = shell_exec($curlCommand.' 2>&1');
 
         if (empty($output)) {
             return [
@@ -115,7 +117,7 @@ class UnitService
 
         // Extract HTTP status code from the end
         $lines = explode("\n", trim($output));
-        $httpCode = (int)array_pop($lines);
+        $httpCode = (int) array_pop($lines);
         $body = implode("\n", $lines);
 
         if ($httpCode < 200 || $httpCode >= 300) {
@@ -127,11 +129,11 @@ class UnitService
         }
 
         $decoded = json_decode($body, true);
-        
+
         if (json_last_error() !== JSON_ERROR_NONE) {
             return [
                 'success' => false,
-                'error' => 'Invalid JSON response: ' . $body,
+                'error' => 'Invalid JSON response: '.$body,
             ];
         }
 
@@ -163,8 +165,8 @@ class UnitService
     public function getApplications(): array
     {
         $result = $this->getConfig();
-        
-        if (!$result['success']) {
+
+        if (! $result['success']) {
             return $result;
         }
 
@@ -180,14 +182,14 @@ class UnitService
     public function getApplication(string $name): array
     {
         $result = $this->getConfig();
-        
-        if (!$result['success']) {
+
+        if (! $result['success']) {
             return $result;
         }
 
         $applications = $result['data']['applications'] ?? [];
-        
-        if (!isset($applications[$name])) {
+
+        if (! isset($applications[$name])) {
             return [
                 'success' => false,
                 'error' => "Application '{$name}' not found",
@@ -206,8 +208,8 @@ class UnitService
     public function saveApplication(string $name, array $config): array
     {
         $result = $this->getConfig();
-        
-        if (!$result['success']) {
+
+        if (! $result['success']) {
             return $result;
         }
 
@@ -223,14 +225,14 @@ class UnitService
     public function deleteApplication(string $name): array
     {
         $result = $this->getConfig();
-        
-        if (!$result['success']) {
+
+        if (! $result['success']) {
             return $result;
         }
 
         $currentConfig = $result['data'];
-        
-        if (!isset($currentConfig['applications'][$name])) {
+
+        if (! isset($currentConfig['applications'][$name])) {
             return [
                 'success' => false,
                 'error' => "Application '{$name}' not found",
@@ -248,8 +250,8 @@ class UnitService
     public function getListeners(): array
     {
         $result = $this->getConfig();
-        
-        if (!$result['success']) {
+
+        if (! $result['success']) {
             return $result;
         }
 
@@ -265,26 +267,26 @@ class UnitService
     public function saveListener(string $address, array $config): array
     {
         $result = $this->getConfig();
-        
-        if (!$result['success']) {
+
+        if (! $result['success']) {
             return $result;
         }
 
         $currentConfig = $result['data'];
-        
+
         // Ensure listeners key exists
-        if (!isset($currentConfig['listeners'])) {
+        if (! isset($currentConfig['listeners'])) {
             $currentConfig['listeners'] = [];
         }
-        
+
         // Validate config is an object (associative array)
-        if (empty($config) || !is_array($config)) {
+        if (empty($config) || ! is_array($config)) {
             return [
                 'success' => false,
                 'error' => 'Listener configuration must be a non-empty object',
             ];
         }
-        
+
         $currentConfig['listeners'][$address] = $config;
 
         return $this->updateConfig($currentConfig);
@@ -296,14 +298,14 @@ class UnitService
     public function deleteListener(string $address): array
     {
         $result = $this->getConfig();
-        
-        if (!$result['success']) {
+
+        if (! $result['success']) {
             return $result;
         }
 
         $currentConfig = $result['data'];
-        
-        if (!isset($currentConfig['listeners'][$address])) {
+
+        if (! isset($currentConfig['listeners'][$address])) {
             return [
                 'success' => false,
                 'error' => "Listener '{$address}' not found",
@@ -321,8 +323,8 @@ class UnitService
     public function getRoutes(): array
     {
         $result = $this->getConfig();
-        
-        if (!$result['success']) {
+
+        if (! $result['success']) {
             return $result;
         }
 
@@ -338,8 +340,8 @@ class UnitService
     public function saveRoute(string $name, array $config): array
     {
         $result = $this->getConfig();
-        
-        if (!$result['success']) {
+
+        if (! $result['success']) {
             return $result;
         }
 
@@ -355,14 +357,14 @@ class UnitService
     public function deleteRoute(string $name): array
     {
         $result = $this->getConfig();
-        
-        if (!$result['success']) {
+
+        if (! $result['success']) {
             return $result;
         }
 
         $currentConfig = $result['data'];
-        
-        if (!isset($currentConfig['routes'][$name])) {
+
+        if (! isset($currentConfig['routes'][$name])) {
             return [
                 'success' => false,
                 'error' => "Route '{$name}' not found",
@@ -390,4 +392,3 @@ class UnitService
         return $this->getConfig();
     }
 }
-

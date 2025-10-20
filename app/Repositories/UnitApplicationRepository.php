@@ -47,4 +47,3 @@ class UnitApplicationRepository
         return UnitApplication::where('active', false)->get();
     }
 }
-

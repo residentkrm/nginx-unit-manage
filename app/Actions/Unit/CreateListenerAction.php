@@ -26,7 +26,7 @@ class CreateListenerAction
 
             // Build config object
             $config = $data['config'];
-            if (!empty($data['pass'])) {
+            if (! empty($data['pass'])) {
                 $config['pass'] = $data['pass'];
             }
 
@@ -36,8 +36,8 @@ class CreateListenerAction
 
             // Apply to Unit API first
             $result = $this->unitService->saveListener($data['address'], $config);
-            
-            if (!$result['success']) {
+
+            if (! $result['success']) {
                 throw new UnitApiException($result['error'] ?? 'Failed to create listener on Unit server');
             }
 

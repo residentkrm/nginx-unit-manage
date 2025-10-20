@@ -8,4 +8,3 @@ class UnitApiException extends Exception
 {
     //
 }
-

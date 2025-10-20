@@ -19,7 +19,7 @@ class ToggleApplicationAction
             if ($application->active) {
                 // Deactivate - remove from Unit
                 $result = $this->unitService->deleteApplication($application->name);
-                if (!$result['success']) {
+                if (! $result['success']) {
                     throw new UnitApiException($result['error'] ?? 'Failed to deactivate application');
                 }
                 $application->update(['active' => false]);
@@ -27,7 +27,7 @@ class ToggleApplicationAction
                 // Activate - deploy to Unit
                 $config = array_merge(['type' => $application->type], $application->config);
                 $result = $this->unitService->saveApplication($application->name, $config);
-                if (!$result['success']) {
+                if (! $result['success']) {
                     throw new UnitApiException($result['error'] ?? 'Failed to activate application');
                 }
                 $application->update(['active' => true]);

@@ -27,8 +27,8 @@ class CreateApplicationAction
             // Apply to Unit API first
             $config = array_merge(['type' => $data['type']], $data['config']);
             $result = $this->unitService->saveApplication($data['name'], $config);
-            
-            if (!$result['success']) {
+
+            if (! $result['success']) {
                 throw new UnitApiException($result['error'] ?? 'Failed to create application on Unit server');
             }
 

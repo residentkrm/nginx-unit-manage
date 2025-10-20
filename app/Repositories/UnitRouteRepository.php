@@ -47,4 +47,3 @@ class UnitRouteRepository
         return UnitRoute::where('active', false)->get();
     }
 }
-

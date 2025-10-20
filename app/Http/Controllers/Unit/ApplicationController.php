@@ -32,7 +32,7 @@ class ApplicationController extends Controller
     public function index()
     {
         $applications = $this->repository->all();
-        
+
         // Try to get active applications from Unit API (optional, won't fail if server is down)
         $activeApplications = [];
         try {
@@ -42,15 +42,16 @@ class ApplicationController extends Controller
                 $activeApplications = $apiResult['data'];
             }
         } catch (\Exception $e) {
-            Log::error('Failed to get applications from Unit API: ' . $e->getMessage());
+            Log::error('Failed to get applications from Unit API: '.$e->getMessage());
         }
-        
+
         return response()->json([
             'data' => $applications->map(function ($app) use ($activeApplications) {
                 $appData = $app->toArray();
                 $appData['is_active_in_unit'] = isset($activeApplications[$app->name]);
+
                 return $appData;
-            })
+            }),
         ]);
     }
 
@@ -86,6 +87,7 @@ class ApplicationController extends Controller
     public function show(string $name)
     {
         $application = $this->repository->findOrFail($name);
+
         return response()->json(['success' => true, 'data' => $application]);
     }
 
@@ -121,6 +123,7 @@ class ApplicationController extends Controller
 
         try {
             $action->execute($application);
+
             return response()->json(['success' => true], 204);
         } catch (ApplicationActiveException $e) {
             return response()->json(['error' => $e->getMessage()], 400);
@@ -136,9 +139,10 @@ class ApplicationController extends Controller
 
         try {
             $application = $action->execute($application);
-            $message = $application->active 
-                ? 'Application activated and deployed successfully' 
+            $message = $application->active
+                ? 'Application activated and deployed successfully'
                 : 'Application deactivated successfully';
+
             return response()->json(['success' => true, 'data' => $application, 'message' => $message]);
         } catch (UnitApiException $e) {
             return response()->json(['error' => $e->getMessage()], 400);

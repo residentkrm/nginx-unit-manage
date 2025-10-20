@@ -21,30 +21,30 @@ class ToggleListenerAction
             if ($listener->active) {
                 // Deactivate - remove from Unit
                 $result = $this->unitService->deleteListener($listener->address);
-                if (!$result['success']) {
+                if (! $result['success']) {
                     throw new UnitApiException($result['error'] ?? 'Failed to deactivate listener');
                 }
                 $listener->update(['active' => false]);
             } else {
                 // Activate - deploy to Unit
                 $config = is_array($listener->config) ? $listener->config : [];
-                
+
                 // If pass is set, add it to config
                 $passValue = null;
-                if (!empty($listener->pass)) {
+                if (! empty($listener->pass)) {
                     $passValue = $listener->pass;
                     $config['pass'] = $passValue;
                 } elseif (isset($config['pass'])) {
                     $passValue = $config['pass'];
                 }
-                
+
                 // Check if pass points to an application and verify it exists
                 if ($passValue && str_starts_with($passValue, 'applications/')) {
                     $appName = str_replace('applications/', '', $passValue);
-                    
+
                     // Check if application exists in Unit API
                     $appsResult = $this->unitService->getApplications();
-                    if ($appsResult['success'] && !isset($appsResult['data'][$appName])) {
+                    if ($appsResult['success'] && ! isset($appsResult['data'][$appName])) {
                         // Check if application exists in database
                         $appInDb = $this->appRepository->findByName($appName);
                         if ($appInDb) {
@@ -54,18 +54,18 @@ class ToggleListenerAction
                         }
                     }
                 }
-                
+
                 // Ensure config is not empty - Unit API requires an object
                 if (empty($config)) {
                     throw new UnitApiException('Listener configuration is empty. Please add at least a "pass" field or configuration.');
                 }
-                
+
                 // Ensure config is an associative array (object), not indexed array
                 $configJson = json_encode($config, JSON_FORCE_OBJECT);
                 $config = json_decode($configJson, true);
-                
+
                 $result = $this->unitService->saveListener($listener->address, $config);
-                if (!$result['success']) {
+                if (! $result['success']) {
                     throw new UnitApiException($result['error'] ?? 'Failed to activate listener');
                 }
                 $listener->update(['active' => true]);

@@ -16,7 +16,7 @@ class DeleteApplicationAction
     public function execute(UnitApplication $application): void
     {
         if ($application->active) {
-            throw new ApplicationActiveException();
+            throw new ApplicationActiveException;
         }
 
         DB::transaction(function () use ($application) {

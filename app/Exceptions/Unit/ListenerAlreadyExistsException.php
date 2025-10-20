@@ -11,4 +11,3 @@ class ListenerAlreadyExistsException extends Exception
         parent::__construct("Listener '{$address}' already exists.");
     }
 }
-

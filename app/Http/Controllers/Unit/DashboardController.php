@@ -12,8 +12,11 @@ use Illuminate\Support\Facades\Log;
 class DashboardController extends Controller
 {
     protected UnitService $unitService;
+
     protected UnitApplicationRepository $appRepository;
+
     protected UnitListenerRepository $listenerRepository;
+
     protected UnitRouteRepository $routeRepository;
 
     public function __construct(
@@ -36,7 +39,7 @@ class DashboardController extends Controller
         try {
             $connectionTest = $this->unitService->testConnection();
             $connected = $connectionTest['success'] ?? false;
-            
+
             // Get status if connected
             if ($connected) {
                 $statusResult = $this->unitService->getStatus();
@@ -45,15 +48,15 @@ class DashboardController extends Controller
                 }
             }
         } catch (\Exception $e) {
-            Log::error('Failed to get Unit API status: ' . $e->getMessage());
+            Log::error('Failed to get Unit API status: '.$e->getMessage());
         }
-        
+
         $applicationsCount = $this->appRepository->all()->count();
         $applicationsActive = $this->appRepository->getActive()->count();
-        
+
         $listenersCount = $this->listenerRepository->all()->count();
         $listenersActive = $this->listenerRepository->getActive()->count();
-        
+
         $routesCount = $this->routeRepository->all()->count();
         $routesActive = $this->routeRepository->getActive()->count();
 

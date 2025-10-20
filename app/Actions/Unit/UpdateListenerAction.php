@@ -22,7 +22,7 @@ class UpdateListenerAction
             if ($listener->active) {
                 // Build config object
                 $config = $data['config'];
-                if (!empty($data['pass'])) {
+                if (! empty($data['pass'])) {
                     $config['pass'] = $data['pass'];
                 }
 
@@ -31,8 +31,8 @@ class UpdateListenerAction
                 $config = json_decode($configJson, true);
 
                 $result = $this->unitService->saveListener($listener->address, $config);
-                
-                if (!$result['success']) {
+
+                if (! $result['success']) {
                     throw new UnitApiException($result['error'] ?? 'Failed to update listener on Unit server');
                 }
             }

@@ -47,4 +47,3 @@ class UnitListenerRepository
         return UnitListener::where('active', false)->get();
     }
 }
-

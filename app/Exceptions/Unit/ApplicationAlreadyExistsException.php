@@ -11,4 +11,3 @@ class ApplicationAlreadyExistsException extends Exception
         parent::__construct("Application '{$name}' already exists.");
     }
 }
-

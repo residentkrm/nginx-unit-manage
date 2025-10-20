@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 class RouteController extends Controller
 {
     protected UnitService $unitService;
+
     protected UnitRouteRepository $repository;
 
     public function __construct(UnitService $unitService, UnitRouteRepository $repository)
@@ -21,7 +22,7 @@ class RouteController extends Controller
     public function index()
     {
         $routes = $this->repository->all();
-        
+
         // Try to get active routes from Unit API (optional, won't fail if server is down)
         $activeRoutes = [];
         try {
@@ -32,13 +33,14 @@ class RouteController extends Controller
         } catch (\Exception $e) {
             // Silently ignore - server might be down, we work with DB only
         }
-        
+
         return response()->json([
             'data' => $routes->map(function ($route) use ($activeRoutes) {
                 $routeData = $route->toArray();
                 $routeData['is_active_in_unit'] = isset($activeRoutes[$route->name]);
+
                 return $routeData;
-            })
+            }),
         ]);
     }
 
@@ -68,6 +70,7 @@ class RouteController extends Controller
     public function show(string $name)
     {
         $route = $this->repository->findOrFail($name);
+
         return response()->json(['success' => true, 'data' => $route]);
     }
 
@@ -111,7 +114,7 @@ class RouteController extends Controller
     public function toggle(Request $request, string $name)
     {
         $route = $this->repository->findOrFail($name);
-        
+
         if ($route->active) {
             // Deactivate - remove from Unit
             $result = $this->unitService->deleteRoute($name);
@@ -120,6 +123,7 @@ class RouteController extends Controller
                 $message = 'Route deactivated successfully';
             } else {
                 $error = $result['error'] ?? 'Failed to deactivate route';
+
                 return response()->json(['success' => false, 'error' => $error], 400);
             }
         } else {
@@ -130,6 +134,7 @@ class RouteController extends Controller
                 $message = 'Route activated and deployed successfully';
             } else {
                 $error = $result['error'] ?? 'Failed to activate route';
+
                 return response()->json(['success' => false, 'error' => $error], 400);
             }
         }

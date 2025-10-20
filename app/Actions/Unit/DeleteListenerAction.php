@@ -16,7 +16,7 @@ class DeleteListenerAction
     public function execute(UnitListener $listener): void
     {
         if ($listener->active) {
-            throw new ListenerActiveException();
+            throw new ListenerActiveException;
         }
 
         DB::transaction(function () use ($listener) {

@@ -22,8 +22,8 @@ class UpdateApplicationAction
             if ($application->active) {
                 $config = array_merge(['type' => $data['type']], $data['config']);
                 $result = $this->unitService->saveApplication($application->name, $config);
-                
-                if (!$result['success']) {
+
+                if (! $result['success']) {
                     throw new UnitApiException($result['error'] ?? 'Failed to update application on Unit server');
                 }
             }

@@ -467,9 +467,10 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { useApi } from "../../composables/useApi";
+import { useListeners } from "../../composables/unit/useListeners";
 import { useAlert } from "../../composables/useAlert";
-const { post } = useApi();
+
+const { createListener } = useListeners();
 const { showAlert } = useAlert();
 const router = useRouter();
 const loading = ref(false);
@@ -505,14 +506,14 @@ const syncToJson = () => {
         try {
             const cert = JSON.parse(form.value.tlsCertificate);
             tls.certificate = Array.isArray(cert) ? cert : [cert];
-        } catch (_e) {
+        } catch (e) {
             tls.certificate = form.value.tlsCertificate;
         }
     }
     if (form.value.tlsConfCommands) {
         try {
             tls.conf_commands = JSON.parse(form.value.tlsConfCommands);
-        } catch (_e) {
+        } catch (e) {
             // Keep as is if invalid
         }
     }
@@ -539,7 +540,7 @@ const syncToJson = () => {
         try {
             const tickets = JSON.parse(form.value.tlsSessionTickets);
             session.tickets = Array.isArray(tickets) ? tickets : tickets;
-        } catch (_e) {
+        } catch (e) {
             session.tickets = form.value.tlsSessionTickets;
         }
     }
@@ -560,7 +561,7 @@ const syncToJson = () => {
             try {
                 const source = JSON.parse(form.value.forwardedSource);
                 forwarded.source = Array.isArray(source) ? source : source;
-            } catch (_e) {
+            } catch (e) {
                 forwarded.source = form.value.forwardedSource;
             }
         }
@@ -586,7 +587,7 @@ const submit = async () => {
         if (activeTab.value === "json") {
             try {
                 config = JSON.parse(jsonConfig.value);
-            } catch (_e) {
+            } catch (e) {
                 showAlert("Invalid JSON format", "error");
                 loading.value = false;
                 return;
@@ -615,7 +616,7 @@ const submit = async () => {
                     try {
                         const cert = JSON.parse(form.value.tlsCertificate);
                         tls.certificate = Array.isArray(cert) ? cert : cert;
-                    } catch (_e) {
+                    } catch (e) {
                         tls.certificate = form.value.tlsCertificate;
                     }
                 }
@@ -624,7 +625,7 @@ const submit = async () => {
                         tls.conf_commands = JSON.parse(
                             form.value.tlsConfCommands,
                         );
-                    } catch (_e) {
+                    } catch (e) {
                         showAlert(
                             "Invalid TLS conf_commands JSON format",
                             "error",
@@ -660,7 +661,7 @@ const submit = async () => {
                         session.tickets = Array.isArray(tickets)
                             ? tickets
                             : tickets;
-                    } catch (_e) {
+                    } catch (e) {
                         session.tickets = form.value.tlsSessionTickets;
                     }
                 }
@@ -689,7 +690,7 @@ const submit = async () => {
                 try {
                     const source = JSON.parse(form.value.forwardedSource);
                     forwarded.source = Array.isArray(source) ? source : source;
-                } catch (_e) {
+                } catch (e) {
                     forwarded.source = form.value.forwardedSource;
                 }
                 if (form.value.forwardedClientIp) {
@@ -704,20 +705,14 @@ const submit = async () => {
                 config.forwarded = forwarded;
             }
         }
-        const result = await post("/unit/listeners", {
+        await createListener({
             address: form.value.address,
             pass: form.value.pass,
             config: JSON.stringify(config),
             description: form.value.description,
         });
-        if (result.success) {
-            showAlert("Listener created successfully", "success");
-            router.push("/unit/listeners");
-        } else {
-            showAlert(result.error || "Failed to create listener", "error");
-        }
-    } catch (_error) {
-        showAlert("Failed to create listener", "error");
+        router.push("/unit/listeners");
+    } catch (error) {
     } finally {
         loading.value = false;
     }

@@ -198,39 +198,29 @@
     </div>
 </template>
 <script setup>
-import { ref, onMounted } from "vue";
-import { useApi } from "../../composables/useApi";
-import { useAlert } from "../../composables/useAlert";
-const { get, post, delete: del } = useApi();
-const { showAlert } = useAlert();
-const loading = ref(true);
-const applications = ref([]);
-const loadApplications = async () => {
-    loading.value = true;
-    const result = await get("/unit/applications");
-    if (result.success) {
-        applications.value = result.data.data || [];
-    }
-    loading.value = false;
-};
+import { onMounted } from "vue";
+import { useApplications } from "../../composables/unit/useApplications";
+
+const {
+    applications,
+    loading,
+    loadApplications,
+    toggleApplication,
+    deleteApplication,
+} = useApplications();
+
 const toggleApp = async (name) => {
-    const result = await post(`/unit/applications/${name}/toggle`, {});
-    if (result.success) {
-        showAlert("Application toggled successfully", "success");
-        await loadApplications();
-    } else {
-        showAlert(result.error || "Failed to toggle application", "error");
-    }
+    await toggleApplication(name);
 };
+
 const deleteApp = async (name) => {
     if (!confirm("Are you sure you want to delete this application?")) return;
-    const result = await del(`/unit/applications/${name}`);
-    if (result.success) {
-        showAlert("Application deleted successfully", "success");
+    try {
+        await deleteApplication(name);
         await loadApplications();
-    } else {
-        showAlert(result.error || "Failed to delete application", "error");
+    } catch (error) {
     }
 };
+
 onMounted(loadApplications);
 </script>

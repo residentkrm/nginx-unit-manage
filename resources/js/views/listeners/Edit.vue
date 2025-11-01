@@ -436,12 +436,14 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useApi } from "../../composables/useApi";
+import { useListeners } from "../../composables/unit/useListeners";
 import { useAlert } from "../../composables/useAlert";
+
 const props = defineProps({
     address: String,
 });
-const { get, put } = useApi();
+
+const { getListener, updateListener } = useListeners();
 const { showAlert } = useAlert();
 const route = useRoute();
 const router = useRouter();
@@ -482,14 +484,14 @@ const syncToJson = () => {
         try {
             const cert = JSON.parse(form.value.tlsCertificate);
             tls.certificate = Array.isArray(cert) ? cert : cert;
-        } catch (_e) {
+        } catch (e) {
             tls.certificate = form.value.tlsCertificate;
         }
     }
     if (form.value.tlsConfCommands) {
         try {
             tls.conf_commands = JSON.parse(form.value.tlsConfCommands);
-        } catch (_e) {
+        } catch (e) {
             // Keep as is if invalid
         }
     }
@@ -516,7 +518,7 @@ const syncToJson = () => {
         try {
             const tickets = JSON.parse(form.value.tlsSessionTickets);
             session.tickets = Array.isArray(tickets) ? tickets : tickets;
-        } catch (_e) {
+        } catch (e) {
             session.tickets = form.value.tlsSessionTickets;
         }
     }
@@ -537,7 +539,7 @@ const syncToJson = () => {
             try {
                 const source = JSON.parse(form.value.forwardedSource);
                 forwarded.source = Array.isArray(source) ? source : source;
-            } catch (_e) {
+            } catch (e) {
                 forwarded.source = form.value.forwardedSource;
             }
         }
@@ -558,11 +560,8 @@ const syncToJson = () => {
 };
 const loadListener = async () => {
     loading.value = true;
-    const result = await get(
-        `/unit/listeners/${encodeURIComponent(address.value)}`,
-    );
-    if (result.success) {
-        const listener = result.data.data || result.data;
+    try {
+        const listener = await getListener(address.value);
         const config = listener.config || {};
         // Basic config
         form.value.pass = config.pass || listener.pass || "";
@@ -629,11 +628,11 @@ const loadListener = async () => {
         }
         form.value.description = listener.description || "";
         jsonConfig.value = JSON.stringify(config, null, 2);
-    } else {
-        showAlert(result.error || "Failed to load listener", "error");
+    } catch (error) {
         router.push("/unit/listeners");
+    } finally {
+        loading.value = false;
     }
-    loading.value = false;
 };
 const submit = async () => {
     saving.value = true;
@@ -642,7 +641,7 @@ const submit = async () => {
         if (activeTab.value === "json") {
             try {
                 config = JSON.parse(jsonConfig.value);
-            } catch (_e) {
+            } catch (e) {
                 showAlert("Invalid JSON format", "error");
                 saving.value = false;
                 return;
@@ -671,7 +670,7 @@ const submit = async () => {
                     try {
                         const cert = JSON.parse(form.value.tlsCertificate);
                         tls.certificate = Array.isArray(cert) ? cert : cert;
-                    } catch (_e) {
+                    } catch (e) {
                         tls.certificate = form.value.tlsCertificate;
                     }
                 }
@@ -680,7 +679,7 @@ const submit = async () => {
                         tls.conf_commands = JSON.parse(
                             form.value.tlsConfCommands,
                         );
-                    } catch (_e) {
+                    } catch (e) {
                         showAlert(
                             "Invalid TLS conf_commands JSON format",
                             "error",
@@ -716,7 +715,7 @@ const submit = async () => {
                         session.tickets = Array.isArray(tickets)
                             ? tickets
                             : tickets;
-                    } catch (_e) {
+                    } catch (e) {
                         session.tickets = form.value.tlsSessionTickets;
                     }
                 }
@@ -745,7 +744,7 @@ const submit = async () => {
                 try {
                     const source = JSON.parse(form.value.forwardedSource);
                     forwarded.source = Array.isArray(source) ? source : source;
-                } catch (_e) {
+                } catch (e) {
                     forwarded.source = form.value.forwardedSource;
                 }
                 if (form.value.forwardedClientIp) {
@@ -760,22 +759,13 @@ const submit = async () => {
                 config.forwarded = forwarded;
             }
         }
-        const result = await put(
-            `/unit/listeners/${encodeURIComponent(address.value)}`,
-            {
-                pass: form.value.pass,
-                config: JSON.stringify(config),
-                description: form.value.description,
-            },
-        );
-        if (result.success) {
-            showAlert("Listener updated successfully", "success");
-            router.push("/unit/listeners");
-        } else {
-            showAlert(result.error || "Failed to update listener", "error");
-        }
-    } catch (_error) {
-        showAlert("Failed to update listener", "error");
+        await updateListener(address.value, {
+            pass: form.value.pass,
+            config: JSON.stringify(config),
+            description: form.value.description,
+        });
+        router.push("/unit/listeners");
+    } catch (error) {
     } finally {
         saving.value = false;
     }

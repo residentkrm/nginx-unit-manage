@@ -291,9 +291,10 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { useApi } from "../../composables/useApi";
+import { useRoutes } from "../../composables/unit/useRoutes";
 import { useAlert } from "../../composables/useAlert";
-const { post } = useApi();
+
+const { createRoute } = useRoutes();
 const { showAlert } = useAlert();
 const router = useRouter();
 const loading = ref(false);
@@ -362,7 +363,7 @@ const submit = async () => {
         if (activeTab.value === "json") {
             try {
                 config = JSON.parse(jsonConfig.value);
-            } catch (_e) {
+            } catch (e) {
                 showAlert("Invalid JSON format", "error");
                 loading.value = false;
                 return;
@@ -407,19 +408,13 @@ const submit = async () => {
             }
             config.action = action;
         }
-        const result = await post("/unit/routes", {
+        await createRoute({
             name: form.value.name,
             config: JSON.stringify(config),
             description: form.value.description,
         });
-        if (result.success) {
-            showAlert("Route created successfully", "success");
-            router.push("/unit/routes");
-        } else {
-            showAlert(result.error || "Failed to create route", "error");
-        }
-    } catch (_error) {
-        showAlert("Failed to create route", "error");
+        router.push("/unit/routes");
+    } catch (error) {
     } finally {
         loading.value = false;
     }

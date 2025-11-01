@@ -187,39 +187,25 @@
     </div>
 </template>
 <script setup>
-import { ref, onMounted } from "vue";
-import { useApi } from "../../composables/useApi";
-import { useAlert } from "../../composables/useAlert";
-const { get, post, delete: del } = useApi();
-const { showAlert } = useAlert();
-const loading = ref(true);
-const routes = ref([]);
-const loadRoutes = async () => {
-    loading.value = true;
-    const result = await get("/unit/routes");
-    if (result.success) {
-        routes.value = result.data.data || [];
-    }
-    loading.value = false;
-};
-const toggleRoute = async (name) => {
-    const result = await post(`/unit/routes/${name}/toggle`, {});
-    if (result.success) {
-        showAlert("Route toggled successfully", "success");
-        await loadRoutes();
-    } else {
-        showAlert(result.error || "Failed to toggle route", "error");
-    }
-};
+import { onMounted } from "vue";
+import { useRoutes } from "../../composables/unit/useRoutes";
+
+const {
+    routes,
+    loading,
+    loadRoutes,
+    toggleRoute,
+    deleteRoute: deleteRouteAction,
+} = useRoutes();
+
 const deleteRoute = async (name) => {
     if (!confirm("Are you sure you want to delete this route?")) return;
-    const result = await del(`/unit/routes/${name}`);
-    if (result.success) {
-        showAlert("Route deleted successfully", "success");
+    try {
+        await deleteRouteAction(name);
         await loadRoutes();
-    } else {
-        showAlert(result.error || "Failed to delete route", "error");
+    } catch (error) {
     }
 };
+
 onMounted(loadRoutes);
 </script>

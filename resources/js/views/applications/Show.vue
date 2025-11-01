@@ -41,25 +41,24 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useApi } from "../../composables/useApi";
-import { useAlert } from "../../composables/useAlert";
+import { useApplications } from "../../composables/unit/useApplications";
+
 const props = defineProps({
     name: String,
 });
-const { get } = useApi();
-const { showAlert } = useAlert();
+
 const route = useRoute();
 const router = useRouter();
+const { getApplication } = useApplications();
 const loading = ref(true);
 const application = ref(null);
 const name = ref(props.name || route.params.name);
+
 onMounted(async () => {
     loading.value = true;
-    const result = await get(`/unit/applications/${name.value}`);
-    if (result.success) {
-        application.value = result.data.data || result.data;
-    } else {
-        showAlert(result.error || "Failed to load application", "error");
+    try {
+        application.value = await getApplication(name.value);
+    } catch (error) {
         router.push("/unit/applications");
     }
     loading.value = false;

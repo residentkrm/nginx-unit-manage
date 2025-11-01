@@ -418,32 +418,15 @@
     </div>
 </template>
 <script setup>
-import { ref, onMounted } from "vue";
-import { useApi } from "../composables/useApi";
+import { onMounted } from "vue";
+import { useDashboard } from "../composables/unit/useDashboard";
 import ApplicationsIcon from "../components/icons/ApplicationsIcon.vue";
 import ListenersIcon from "../components/icons/ListenersIcon.vue";
 import RoutesIcon from "../components/icons/RoutesIcon.vue";
 import StatusIcon from "../components/icons/StatusIcon.vue";
 import WarningIcon from "../components/icons/WarningIcon.vue";
-const { get } = useApi();
-const loading = ref(true);
-const stats = ref({
-    applicationsCount: 0,
-    applicationsActive: 0,
-    listenersCount: 0,
-    listenersActive: 0,
-    routesCount: 0,
-    routesActive: 0,
-});
-const connected = ref(false);
-const status = ref(null);
-onMounted(async () => {
-    const result = await get("/unit/dashboard");
-    if (result.success) {
-        stats.value = result.data;
-        connected.value = result.data.connected || false;
-        status.value = result.data.status || null;
-    }
-    loading.value = false;
-});
+
+const { stats, connected, status, loading, loadDashboard } = useDashboard();
+
+onMounted(loadDashboard);
 </script>

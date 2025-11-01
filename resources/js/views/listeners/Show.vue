@@ -41,30 +41,27 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useApi } from "../../composables/useApi";
-import { useAlert } from "../../composables/useAlert";
+import { useListeners } from "../../composables/unit/useListeners";
+
 const props = defineProps({
     address: String,
 });
-const { get } = useApi();
-const { showAlert } = useAlert();
+
 const route = useRoute();
 const router = useRouter();
+const { getListener } = useListeners();
 const loading = ref(true);
 const listener = ref(null);
 const address = computed(() => {
     const addr = props.address || route.params.address;
     return decodeURIComponent(addr);
 });
+
 onMounted(async () => {
     loading.value = true;
-    const result = await get(
-        `/unit/listeners/${encodeURIComponent(address.value)}`,
-    );
-    if (result.success) {
-        listener.value = result.data.data || result.data;
-    } else {
-        showAlert(result.error || "Failed to load listener", "error");
+    try {
+        listener.value = await getListener(address.value);
+    } catch (error) {
         router.push("/unit/listeners");
     }
     loading.value = false;

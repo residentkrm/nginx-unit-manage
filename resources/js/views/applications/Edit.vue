@@ -67,9 +67,7 @@
                         <p
                             class="mt-2 text-sm text-gray-500 dark:text-gray-400"
                         >
-                            Application type: external, java, perl, php, python,
-                            ruby, wasm. You can specify version: "php 7",
-                            "python 3.4", etc.
+                            {{ TYPE_DESCRIPTION }}
                         </p>
                     </div>
                     <div
@@ -706,12 +704,21 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { useApi } from "../../composables/useApi";
+import { useApplications } from "../../composables/unit/useApplications";
 import { useAlert } from "../../composables/useAlert";
+import {
+    getBaseType,
+    getTypeConfig,
+    TYPE_DESCRIPTION,
+    buildFullConfig,
+    buildCommonConfig,
+} from "../../config/applicationTypes";
+
 const props = defineProps({
     name: String,
 });
-const { get, put } = useApi();
+
+const { getApplication, updateApplication } = useApplications();
 const { showAlert } = useAlert();
 const router = useRouter();
 const route = useRoute();
@@ -744,18 +751,7 @@ const form = ref({
     environment: "",
     description: "",
 });
-const baseType = computed(() => {
-    const type = form.value.type.toLowerCase().trim();
-    if (type.startsWith("php")) return "php";
-    if (type.startsWith("external")) return "external";
-    if (type.startsWith("perl")) return "perl";
-    if (type.startsWith("python")) return "python";
-    if (type.startsWith("ruby")) return "ruby";
-    if (type.startsWith("java")) return "java";
-    if (type.startsWith("go")) return "go";
-    if (type.startsWith("wasm")) return "wasm";
-    return type.split(" ")[0]; // fallback to first word
-});
+const baseType = computed(() => getBaseType(form.value.type));
 const jsonConfig = ref("");
 const syncToJson = () => {
     const config = {};
@@ -775,109 +771,21 @@ const syncToJson = () => {
             config.processes = processesObj;
         }
     }
-    // Type-specific options
-    if (baseType.value === "php") {
-        if (form.value.root) {
-            config.root = form.value.root;
-        }
-        if (form.value.script) {
-            config.script = form.value.script;
-        }
-        if (form.value.index) {
-            config.index = form.value.index;
-        }
-        if (form.value.phpOptions) {
-            try {
-                config.options = JSON.parse(form.value.phpOptions);
-            } catch (_e) {
-                // Keep as is if invalid
-            }
-        }
-        if (form.value.targets) {
-            try {
-                config.targets = JSON.parse(form.value.targets);
-            } catch (_e) {
-                // Keep as is if invalid
-            }
-        }
-    } else if (baseType.value === "external") {
-        if (form.value.executable) {
-            config.executable = form.value.executable;
-        }
-        if (form.value.arguments) {
-            try {
-                config.arguments = JSON.parse(form.value.arguments);
-            } catch (_e) {
-                // Keep as is if invalid
-            }
-        }
-    } else if (baseType.value === "perl") {
-        if (form.value.script) {
-            config.script = form.value.script;
-        }
-        if (form.value.threads) {
-            config.threads = form.value.threads;
-        }
-        if (form.value.threadStackSize) {
-            config.thread_stack_size = form.value.threadStackSize;
-        }
-    } else {
-        // Common paths for other types
-        if (form.value.root) {
-            config.root = form.value.root;
-        }
-        if (form.value.script) {
-            config.script = form.value.script;
-        }
-    }
-    // Common paths
-    if (form.value.workingDirectory) {
-        config.working_directory = form.value.workingDirectory;
-    }
-    // User & Group
-    if (form.value.user) {
-        config.user = form.value.user;
-    }
-    if (form.value.group) {
-        config.group = form.value.group;
-    }
-    // Limits
-    const limits = {};
-    if (form.value.limitsTimeout !== null && form.value.limitsTimeout !== "") {
-        limits.timeout = form.value.limitsTimeout;
-    }
-    if (
-        form.value.limitsRequests !== null &&
-        form.value.limitsRequests !== ""
-    ) {
-        limits.requests = form.value.limitsRequests;
-    }
-    if (Object.keys(limits).length > 0) {
-        config.limits = limits;
-    }
-    // Output
-    if (form.value.stdout) {
-        config.stdout = form.value.stdout;
-    }
-    if (form.value.stderr) {
-        config.stderr = form.value.stderr;
-    }
-    // Environment
-    if (form.value.environment) {
-        try {
-            config.environment = JSON.parse(form.value.environment);
-        } catch (_e) {
-            // Keep as is if invalid
-        }
+    const typeConfig = getTypeConfig(baseType.value);
+    try {
+        const typeSpecificConfig = typeConfig.buildConfig(form.value);
+        const commonConfig = buildCommonConfig(form.value);
+        Object.assign(config, typeSpecificConfig, commonConfig);
+    } catch (e) {
+        // Keep as is if invalid
     }
     jsonConfig.value = JSON.stringify(config, null, 2);
 };
 const loadApplication = async () => {
     loading.value = true;
     const name = props.name || route.params.name;
-    const result = await get(`/unit/applications/${name}`);
-    if (result.success) {
-        const app = result.data.data || result.data;
+    try {
+        const app = await getApplication(name);
         const config = app.config || {};
         // Determine processes mode
         let processesMode = "static";
@@ -931,11 +839,11 @@ const loadApplication = async () => {
             description: app.description || "",
         };
         jsonConfig.value = JSON.stringify(config, null, 2);
-    } else {
-        showAlert(result.error || "Failed to load application", "error");
+    } catch (error) {
         router.push("/unit/applications");
+    } finally {
+        loading.value = false;
     }
-    loading.value = false;
 };
 const submit = async () => {
     saving.value = true;
@@ -944,7 +852,7 @@ const submit = async () => {
         if (activeTab.value === "json") {
             try {
                 config = JSON.parse(jsonConfig.value);
-            } catch (_e) {
+            } catch (e) {
                 showAlert("Invalid JSON format", "error");
                 saving.value = false;
                 return;
@@ -968,145 +876,31 @@ const submit = async () => {
                     config.processes = processesObj;
                 }
             }
-            // Type-specific options
-            if (baseType.value === "php") {
-                if (!form.value.root) {
-                    showAlert("Root is required for PHP applications", "error");
-                    saving.value = false;
-                    return;
-                }
-                config.root = form.value.root;
-                if (form.value.script) {
-                    config.script = form.value.script;
-                }
-                if (form.value.index) {
-                    config.index = form.value.index;
-                }
-                if (form.value.phpOptions) {
-                    try {
-                        config.options = JSON.parse(form.value.phpOptions);
-                    } catch (_e) {
-                        showAlert("Invalid PHP options JSON format", "error");
-                        saving.value = false;
-                        return;
-                    }
-                }
-                if (form.value.targets) {
-                    try {
-                        config.targets = JSON.parse(form.value.targets);
-                    } catch (_e) {
-                        showAlert("Invalid targets JSON format", "error");
-                        saving.value = false;
-                        return;
-                    }
-                }
-            } else if (baseType.value === "external") {
-                if (!form.value.executable) {
-                    showAlert(
-                        "Executable is required for external applications",
-                        "error",
-                    );
-                    saving.value = false;
-                    return;
-                }
-                config.executable = form.value.executable;
-                if (form.value.arguments) {
-                    try {
-                        config.arguments = JSON.parse(form.value.arguments);
-                    } catch (_e) {
-                        showAlert("Invalid arguments JSON format", "error");
-                        saving.value = false;
-                        return;
-                    }
-                }
-            } else if (baseType.value === "perl") {
-                if (!form.value.script) {
-                    showAlert(
-                        "Script is required for Perl applications",
-                        "error",
-                    );
-                    saving.value = false;
-                    return;
-                }
-                config.script = form.value.script;
-                if (form.value.threads) {
-                    config.threads = form.value.threads;
-                }
-                if (form.value.threadStackSize) {
-                    config.thread_stack_size = form.value.threadStackSize;
-                }
-            } else {
-                // Common paths for other types
-                if (form.value.root) {
-                    config.root = form.value.root;
-                }
-                if (form.value.script) {
-                    config.script = form.value.script;
-                }
+            const typeConfig = getTypeConfig(baseType.value);
+            const validationErrors = typeConfig.validate(form.value);
+            if (validationErrors.length > 0) {
+                showAlert(validationErrors[0], "error");
+                saving.value = false;
+                return;
             }
-            // Common paths
-            if (form.value.workingDirectory) {
-                config.working_directory = form.value.workingDirectory;
-            }
-            // User & Group
-            if (form.value.user) {
-                config.user = form.value.user;
-            }
-            if (form.value.group) {
-                config.group = form.value.group;
-            }
-            // Limits
-            const limits = {};
-            if (
-                form.value.limitsTimeout !== null &&
-                form.value.limitsTimeout !== ""
-            ) {
-                limits.timeout = form.value.limitsTimeout;
-            }
-            if (
-                form.value.limitsRequests !== null &&
-                form.value.limitsRequests !== ""
-            ) {
-                limits.requests = form.value.limitsRequests;
-            }
-            if (Object.keys(limits).length > 0) {
-                config.limits = limits;
-            }
-            // Output
-            if (form.value.stdout) {
-                config.stdout = form.value.stdout;
-            }
-            if (form.value.stderr) {
-                config.stderr = form.value.stderr;
-            }
-            // Environment
-            if (form.value.environment) {
-                try {
-                    config.environment = JSON.parse(form.value.environment);
-                } catch (_e) {
-                    showAlert(
-                        "Invalid environment variables JSON format",
-                        "error",
-                    );
-                    saving.value = false;
-                    return;
-                }
+
+            try {
+                config = buildFullConfig(baseType.value, form.value);
+            } catch (error) {
+                showAlert(error.message, "error");
+                saving.value = false;
+                return;
             }
         }
         const name = props.name || route.params.name;
-        const result = await put(`/unit/applications/${name}`, {
+        await updateApplication(name, {
             type: form.value.type,
             config: JSON.stringify(config),
             description: form.value.description,
         });
-        if (result.success) {
-            showAlert("Application updated successfully", "success");
-            router.push("/unit/applications");
-        } else {
-            showAlert(result.error || "Failed to update application", "error");
-        }
-    } catch (_error) {
-        showAlert("Failed to update application", "error");
+        router.push("/unit/applications");
+    } catch (error) {
+        // Error already handled in composable
     } finally {
         saving.value = false;
     }

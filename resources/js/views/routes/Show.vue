@@ -41,25 +41,24 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useApi } from "../../composables/useApi";
-import { useAlert } from "../../composables/useAlert";
+import { useRoutes } from "../../composables/unit/useRoutes";
+
 const props = defineProps({
     name: String,
 });
-const { get } = useApi();
-const { showAlert } = useAlert();
+
 const route = useRoute();
 const router = useRouter();
+const { getRoute } = useRoutes();
 const loading = ref(true);
 const routeData = ref(null);
 const name = ref(props.name || route.params.name);
+
 onMounted(async () => {
     loading.value = true;
-    const result = await get(`/unit/routes/${name.value}`);
-    if (result.success) {
-        routeData.value = result.data.data || result.data;
-    } else {
-        showAlert(result.error || "Failed to load route", "error");
+    try {
+        routeData.value = await getRoute(name.value);
+    } catch (error) {
         router.push("/unit/routes");
     }
     loading.value = false;

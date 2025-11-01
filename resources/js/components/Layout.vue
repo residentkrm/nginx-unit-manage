@@ -67,7 +67,12 @@
 
         <main class="py-10">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <AlertContainer />
+                <Alert
+                    v-if="alertMessage"
+                    :message="alertMessage"
+                    :type="alertType"
+                    @close="hideAlert"
+                />
                 <slot />
             </div>
         </main>
@@ -75,5 +80,8 @@
 </template>
 
 <script setup>
-import AlertContainer from "./AlertContainer.vue";
+import { useAlert } from "../composables/useAlert";
+import Alert from "./Alert.vue";
+
+const { alertMessage, alertType, hideAlert } = useAlert();
 </script>

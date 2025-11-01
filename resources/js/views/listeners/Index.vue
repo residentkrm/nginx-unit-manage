@@ -204,42 +204,25 @@
     </div>
 </template>
 <script setup>
-import { ref, onMounted } from "vue";
-import { useApi } from "../../composables/useApi";
-import { useAlert } from "../../composables/useAlert";
-const { get, post, delete: del } = useApi();
-const { showAlert } = useAlert();
-const loading = ref(true);
-const listeners = ref([]);
-const loadListeners = async () => {
-    loading.value = true;
-    const result = await get("/unit/listeners");
-    if (result.success) {
-        listeners.value = result.data.data || [];
-    }
-    loading.value = false;
-};
-const toggleListener = async (address) => {
-    const result = await post(
-        `/unit/listeners/${encodeURIComponent(address)}/toggle`,
-        {},
-    );
-    if (result.success) {
-        showAlert("Listener toggled successfully", "success");
-        await loadListeners();
-    } else {
-        showAlert(result.error || "Failed to toggle listener", "error");
-    }
-};
+import { onMounted } from "vue";
+import { useListeners } from "../../composables/unit/useListeners";
+
+const {
+    listeners,
+    loading,
+    loadListeners,
+    toggleListener,
+    deleteListener: deleteListenerAction,
+} = useListeners();
+
 const deleteListener = async (address) => {
     if (!confirm("Are you sure you want to delete this listener?")) return;
-    const result = await del(`/unit/listeners/${encodeURIComponent(address)}`);
-    if (result.success) {
-        showAlert("Listener deleted successfully", "success");
+    try {
+        await deleteListenerAction(address);
         await loadListeners();
-    } else {
-        showAlert(result.error || "Failed to delete listener", "error");
+    } catch (error) {
     }
 };
+
 onMounted(loadListeners);
 </script>

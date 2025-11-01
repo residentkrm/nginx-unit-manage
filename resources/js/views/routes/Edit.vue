@@ -268,12 +268,13 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useApi } from "../../composables/useApi";
+import { useRoutes } from "../../composables/unit/useRoutes";
 import { useAlert } from "../../composables/useAlert";
 const props = defineProps({
     name: String,
 });
-const { get, put } = useApi();
+
+const { getRoute, updateRoute } = useRoutes();
 const { showAlert } = useAlert();
 const route = useRoute();
 const router = useRouter();
@@ -326,9 +327,8 @@ const syncToJson = () => {
 };
 const loadRoute = async () => {
     loading.value = true;
-    const result = await get(`/unit/routes/${name.value}`);
-    if (result.success) {
-        const routeData = result.data.data || result.data;
+    try {
+        const routeData = await getRoute(name.value);
         const config = routeData.config || {};
         const match = config.match || {};
         const action = config.action || {};
@@ -364,11 +364,11 @@ const loadRoute = async () => {
             description: routeData.description || "",
         };
         jsonConfig.value = JSON.stringify(config, null, 2);
-    } else {
-        showAlert(result.error || "Failed to load route", "error");
+    } catch (error) {
         router.push("/unit/routes");
+    } finally {
+        loading.value = false;
     }
-    loading.value = false;
 };
 const submit = async () => {
     saving.value = true;
@@ -377,7 +377,7 @@ const submit = async () => {
         if (activeTab.value === "json") {
             try {
                 config = JSON.parse(jsonConfig.value);
-            } catch (_e) {
+            } catch (e) {
                 showAlert("Invalid JSON format", "error");
                 saving.value = false;
                 return;
@@ -422,18 +422,12 @@ const submit = async () => {
             }
             config.action = action;
         }
-        const result = await put(`/unit/routes/${name.value}`, {
+        await updateRoute(name.value, {
             config: JSON.stringify(config),
             description: form.value.description,
         });
-        if (result.success) {
-            showAlert("Route updated successfully", "success");
-            router.push("/unit/routes");
-        } else {
-            showAlert(result.error || "Failed to update route", "error");
-        }
-    } catch (_error) {
-        showAlert("Failed to update route", "error");
+        router.push("/unit/routes");
+    } catch (error) {
     } finally {
         saving.value = false;
     }
